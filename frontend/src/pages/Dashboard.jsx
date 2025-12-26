@@ -7,6 +7,7 @@ const Dashboard = () => {
     const [problems, setProblems] = useState([]);
     const [problemSets, setProblemSets] = useState([]);
     const [bookmarks, setBookmarks] = useState([]);
+    const [readStatuses, setReadStatuses] = useState([]);
     const [team, setTeam] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -34,19 +35,34 @@ const Dashboard = () => {
 
     const fetchData = async () => {
         try {
-            const [problemsRes, setsRes, bookmarksRes] = await Promise.all([
+            const [problemsRes, setsRes, bookmarksRes, statusRes] = await Promise.all([
                 api.get('/problems'),
                 api.get('/problem-sets'),
                 api.get('/bookmarks'),
+                api.get('/status/my-read'),
             ]);
             setProblems(problemsRes.data);
             setProblemSets(setsRes.data);
-            setBookmarks(bookmarksRes.data.map(b => b.problem._id));
+            setBookmarks(bookmarksRes.data.filter(b => b.problem).map(b => b.problem._id));
+            setReadStatuses(statusRes.data);
         } catch (err) {
             console.error('Failed to fetch data', err);
             setError('Failed to load dashboard data');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleReadToggle = async (problemId) => {
+        try {
+            const { data } = await api.post('/status/toggle-read', { problemId });
+            if (data.isRead) {
+                setReadStatuses([...readStatuses, problemId]);
+            } else {
+                setReadStatuses(readStatuses.filter(id => id !== problemId));
+            }
+        } catch (err) {
+            console.error('Failed to toggle read status', err);
         }
     };
 
@@ -102,8 +118,8 @@ const Dashboard = () => {
                 <div className="flex justify-center space-x-1 bg-white/90 backdrop-blur-md p-1.5 rounded-2xl border border-white/50 shadow-xl mx-auto max-w-fit mb-12">
                     <button
                         className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 flex items-center gap-2 ${activeTab === 'challenges'
-                                ? 'bg-violet-600 text-white shadow-md transform scale-105'
-                                : 'text-gray-600 hover:bg-gray-100 hover:text-violet-600'
+                            ? 'bg-violet-600 text-white shadow-md transform scale-105'
+                            : 'text-gray-600 hover:bg-gray-100 hover:text-violet-600'
                             }`}
                         onClick={() => setActiveTab('challenges')}
                     >
@@ -116,8 +132,8 @@ const Dashboard = () => {
                     </button>
                     <button
                         className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 flex items-center gap-2 ${activeTab === 'problems'
-                                ? 'bg-violet-600 text-white shadow-md transform scale-105'
-                                : 'text-gray-600 hover:bg-gray-100 hover:text-violet-600'
+                            ? 'bg-violet-600 text-white shadow-md transform scale-105'
+                            : 'text-gray-600 hover:bg-gray-100 hover:text-violet-600'
                             }`}
                         onClick={() => setActiveTab('problems')}
                     >
@@ -224,6 +240,8 @@ const Dashboard = () => {
                                                     setBookmarks(bookmarks.filter(id => id !== problem._id));
                                                 }
                                             }}
+                                            isRead={readStatuses.includes(problem._id)}
+                                            onReadToggle={() => handleReadToggle(problem._id)}
                                         />
                                     ))}
                                 </div>

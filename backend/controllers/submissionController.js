@@ -71,3 +71,28 @@ export const markAsReference = asyncHandler(async (req, res) => {
     throw new Error('Submission not found');
   }
 });
+
+// @desc    Get all problems solved by current user
+// @route   GET /api/submissions/my-solved
+// @access  Private
+export const getMySolvedProblems = asyncHandler(async (req, res) => {
+  // Find all submissions by user
+  const submissions = await Submission.find({ user: req.user._id })
+    .populate({
+      path: 'problem',
+      select: 'title difficulty tags source'
+    })
+    .sort({ createdAt: -1 });
+
+  // Filter unique problems
+  const uniqueProblemsMap = new Map();
+  submissions.forEach(sub => {
+    if (sub.problem && !uniqueProblemsMap.has(sub.problem._id.toString())) {
+      uniqueProblemsMap.set(sub.problem._id.toString(), sub.problem);
+    }
+  });
+
+  const uniqueProblems = Array.from(uniqueProblemsMap.values());
+
+  res.json(uniqueProblems);
+});

@@ -9,6 +9,7 @@ import commentRoutes from './routes/commentRoutes.js';
 import problemSetRoutes from './routes/problemSetRoutes.js';
 import bookmarkRoutes from './routes/bookmarkRoutes.js';
 import teamRoutes from './routes/teamRoutes.js';
+import statusRoutes from './routes/statusRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -34,6 +35,7 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/problem-sets', problemSetRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/teams', teamRoutes);
+app.use('/api/status', statusRoutes);
 
 // Root route
 app.get('/', (req, res) => {

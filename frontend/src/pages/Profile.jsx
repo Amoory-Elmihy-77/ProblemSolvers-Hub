@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import SolvedProblems from '../components/SolvedProblems';
 
 const Profile = () => {
     const { user } = useAuth();
@@ -275,6 +276,9 @@ const Profile = () => {
                     </div>
                 )
             }
+
+            {/* Solved Problems Section */}
+            <SolvedProblems />
 
         </div >
     );

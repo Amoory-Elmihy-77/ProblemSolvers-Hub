@@ -6,14 +6,19 @@ const SetDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [set, setSet] = useState(null);
+    const [readStatuses, setReadStatuses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        const fetchSet = async () => {
+        const fetchData = async () => {
             try {
-                const { data } = await api.get(`/problem-sets/${id}`);
-                setSet(data);
+                const [setRes, statusRes] = await Promise.all([
+                    api.get(`/problem-sets/${id}`),
+                    api.get('/status/my-read'),
+                ]);
+                setSet(setRes.data);
+                setReadStatuses(statusRes.data);
             } catch (err) {
                 setError('Failed to load problem set details');
                 console.error(err);
@@ -21,8 +26,23 @@ const SetDetails = () => {
                 setLoading(false);
             }
         };
-        fetchSet();
+        fetchData();
     }, [id]);
+
+    const handleReadToggle = async (e, problemId) => {
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+            const { data } = await api.post('/status/toggle-read', { problemId });
+            if (data.isRead) {
+                setReadStatuses([...readStatuses, problemId]);
+            } else {
+                setReadStatuses(readStatuses.filter(id => id !== problemId));
+            }
+        } catch (err) {
+            console.error('Failed to toggle read status', err);
+        }
+    };
 
     const getDaysRemaining = (deadline) => {
         const now = new Date();
@@ -141,43 +161,69 @@ const SetDetails = () => {
                 </h2>
 
                 <div className="grid gap-4">
-                    {set.problems.map((problem, index) => (
-                        <Link
-                            key={problem._id}
-                            to={`/problem/${problem._id}`}
-                            className="group block bg-white rounded-xl border border-gray-200 p-4 hover:border-violet-300 hover:shadow-md transition-all"
-                        >
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-gray-500 font-bold text-sm group-hover:bg-violet-100 group-hover:text-violet-600 transition-colors">
-                                        {index + 1}
+                    {set.problems.map((problem, index) => {
+                        const isRead = readStatuses.includes(problem._id);
+                        return (
+                            <Link
+                                key={problem._id}
+                                to={`/problem/${problem._id}`}
+                                className={`group block bg-white rounded-xl border border-gray-200 p-4 hover:border-violet-300 hover:shadow-md transition-all ${isRead ? 'opacity-60 grayscale-[0.3]' : ''}`}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg font-bold text-sm transition-colors ${isRead ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-500 group-hover:bg-violet-100 group-hover:text-violet-600'}`}>
+                                            {isRead ? (
+                                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                </svg>
+                                            ) : (index + 1)}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 group-hover:text-violet-600 transition-colors flex items-center gap-2">
+                                                {problem.title}
+                                                {isRead && (
+                                                    <span className="text-emerald-500" title="Completed">
+                                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </span>
+                                                )}
+                                            </h3>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${problem.difficulty === 'Easy' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                                                    problem.difficulty === 'Medium' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                                                        'bg-red-50 text-red-700 border-red-100'
+                                                    }`}>
+                                                    {problem.difficulty}
+                                                </span>
+                                                <span className="text-xs text-gray-400">•</span>
+                                                <span className="text-xs text-gray-500">{problem.tags.join(', ')}</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-gray-900 group-hover:text-violet-600 transition-colors">
-                                            {problem.title}
-                                        </h3>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${problem.difficulty === 'Easy' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                                                problem.difficulty === 'Medium' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                                                    'bg-red-50 text-red-700 border-red-100'
-                                                }`}>
-                                                {problem.difficulty}
-                                            </span>
-                                            <span className="text-xs text-gray-400">•</span>
-                                            <span className="text-xs text-gray-500">{problem.tags.join(', ')}</span>
+
+                                    <div className="flex items-center gap-6">
+                                        <div className="flex items-center justify-center p-2" onClick={(e) => e.stopPropagation()}>
+                                            <input
+                                                type="checkbox"
+                                                checked={isRead}
+                                                onChange={(e) => handleReadToggle(e, problem._id)}
+                                                className="w-5 h-5 rounded border-gray-300 text-violet-600 focus:ring-violet-500 cursor-pointer transition-transform hover:scale-110 active:scale-95"
+                                                title={isRead ? "Mark as unread" : "Mark as read"}
+                                            />
+                                        </div>
+
+                                        <div className="flex items-center text-gray-400 group-hover:text-violet-600 transition-colors">
+                                            <span className="text-sm font-medium mr-2">Solve</span>
+                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                            </svg>
                                         </div>
                                     </div>
                                 </div>
-
-                                <div className="flex items-center text-gray-400 group-hover:text-violet-600 transition-colors">
-                                    <span className="text-sm font-medium mr-2">Solve</span>
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </Link>
-                    ))}
+                            </Link>
+                        );
+                    })}
                 </div>
             </div>
         </div>

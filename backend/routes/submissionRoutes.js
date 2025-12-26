@@ -3,6 +3,7 @@ import {
   getSubmissionsByProblem,
   createSubmission,
   markAsReference,
+  getMySolvedProblems,
 } from '../controllers/submissionController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import { adminOnly } from '../middleware/roleMiddleware.js';
@@ -10,6 +11,7 @@ import { adminOnly } from '../middleware/roleMiddleware.js';
 const router = express.Router();
 
 router.post('/', protect, createSubmission);
+router.get('/my-solved', protect, getMySolvedProblems);
 router.get('/problem/:problemId', protect, getSubmissionsByProblem);
 router.put('/:id/reference', protect, adminOnly, markAsReference);
 
