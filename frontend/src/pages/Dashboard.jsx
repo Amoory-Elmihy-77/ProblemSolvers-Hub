@@ -24,6 +24,16 @@ const Dashboard = () => {
         fetchTeamDetails();
     }, []);
 
+    // Helper for difficulty colors
+    const getDiffColor = (diff) => {
+        switch (diff) {
+            case 'Easy': return 'text-emerald-500';
+            case 'Medium': return 'text-amber-500';
+            case 'Hard': return 'text-rose-500';
+            default: return 'text-gray-500';
+        }
+    };
+
     const fetchTeamDetails = async () => {
         try {
             const { data } = await api.get('/teams/my-team');
@@ -163,19 +173,29 @@ const Dashboard = () => {
                     {activeTab === 'challenges' && (
                         <div className="space-y-6">
                             {/* Search Bar for Challenges */}
-                            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-                                <h2 className="text-lg font-bold text-gray-800 px-2">
-                                    Challenges <span className="text-gray-400 font-normal text-sm ml-1">({filteredSets.length})</span>
-                                </h2>
-                                <div className="relative w-full md:max-w-xs">
+                            <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-xl shadow-indigo-100/50 border border-white/60 flex flex-col md:flex-row justify-between items-center gap-6 mb-4 transition-all hover:shadow-2xl hover:shadow-indigo-100/70">
+                                <div className="flex items-center gap-4 w-full md:w-auto">
+                                    <div className="bg-indigo-100 p-2.5 rounded-2xl">
+                                        <svg className="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-black text-gray-900 tracking-tight text-center md:text-left">
+                                            Challenges <span className="text-indigo-400 font-medium text-sm ml-1">({filteredSets.length})</span>
+                                        </h2>
+                                        <p className="text-sm text-gray-500 font-medium">Curated weekly problem sets</p>
+                                    </div>
+                                </div>
+                                <div className="relative w-full md:max-w-xs group">
                                     <input
                                         type="text"
                                         placeholder="Search challenges..."
                                         value={filters.search}
                                         onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all"
+                                        className="w-full pl-11 pr-4 py-3 bg-gray-50/50 border border-gray-200/80 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white transition-all duration-300 placeholder:text-gray-400 font-medium"
                                     />
-                                    <svg className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 </div>
@@ -200,60 +220,88 @@ const Dashboard = () => {
                     {activeTab === 'problems' && (
                         <div className="space-y-6">
                             {/* Filter Bar */}
-                            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-                                <h2 className="text-lg font-bold text-gray-800 px-2">
-                                    Problems <span className="text-gray-400 font-normal text-sm ml-1">({filteredProblems.length})</span>
-                                </h2>
+                            {/* Enhanced Filter Bar */}
+                            <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-xl shadow-indigo-100/50 border border-white/60 flex flex-col xl:flex-row justify-between items-center gap-6 mb-8 transition-all hover:shadow-2xl hover:shadow-indigo-100/70">
+                                <div className="flex items-center gap-4 w-full xl:w-auto">
+                                    <div className="bg-violet-100 p-2.5 rounded-2xl">
+                                        <svg className="w-6 h-6 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-black text-gray-900 tracking-tight">
+                                            Problems Library
+                                        </h2>
+                                        <p className="text-sm text-gray-500 font-medium">
+                                            {filteredProblems.length} challenges available
+                                        </p>
+                                    </div>
+                                </div>
 
-                                <div className="flex flex-col lg:flex-row items-center gap-3 w-full md:w-auto">
-                                    {/* Search Input */}
-                                    <div className="relative w-full sm:max-w-xs">
+                                <div className="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
+                                    {/* Glass Search Input */}
+                                    <div className="relative w-full md:w-80 group">
                                         <input
                                             type="text"
                                             placeholder="Search problems..."
                                             value={filters.search}
                                             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all"
+                                            className="w-full pl-11 pr-4 py-3 bg-gray-50/50 border border-gray-200/80 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 focus:bg-white transition-all duration-300 placeholder:text-gray-400 font-medium"
                                         />
-                                        <svg className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-violet-500 transition-colors duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                         </svg>
                                     </div>
 
-                                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
-                                        {/* Bookmark Toggle */}
-                                        <label className="relative inline-flex items-center cursor-pointer mr-2">
-                                            <input
-                                                type="checkbox"
-                                                className="sr-only peer"
-                                                checked={showBookmarksOnly}
-                                                onChange={() => setShowBookmarksOnly(!showBookmarksOnly)}
-                                            />
-                                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
-                                            <span className="ml-3 text-sm font-medium text-gray-700">Show Bookmarks</span>
-                                        </label>
-
-                                        <select
-                                            value={filters.difficulty}
-                                            onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
-                                            className="w-full sm:w-auto px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-shadow"
+                                    <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 w-full">
+                                        {/* Bookmark Toggle Card */}
+                                        <button
+                                            onClick={() => setShowBookmarksOnly(!showBookmarksOnly)}
+                                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border transition-all duration-300 font-semibold text-sm ${showBookmarksOnly
+                                                ? 'bg-amber-50 border-amber-200 text-amber-700 shadow-sm'
+                                                : 'bg-white border-gray-100 text-gray-600 hover:border-violet-200 hover:bg-violet-50/30'
+                                                }`}
                                         >
-                                            <option value="All">Difficulty: All</option>
-                                            <option value="Easy">Easy</option>
-                                            <option value="Medium">Medium</option>
-                                            <option value="Hard">Hard</option>
-                                        </select>
+                                            <span className={`text-lg ${showBookmarksOnly ? 'text-amber-500 animate-pulse' : 'text-gray-400'}`}>
+                                                {showBookmarksOnly ? '⭐' : '☆'}
+                                            </span>
+                                            Bookmarks
+                                        </button>
 
-                                        <select
-                                            value={filters.source}
-                                            onChange={(e) => setFilters({ ...filters, source: e.target.value })}
-                                            className="w-full sm:w-auto px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-shadow"
-                                        >
-                                            <option value="All">Source: All</option>
-                                            <option value="LeetCode">LeetCode</option>
-                                            <option value="Codeforces">Codeforces</option>
-                                            <option value="Custom">Custom</option>
-                                        </select>
+                                        <div className="h-8 w-px bg-gray-200 hidden md:block mx-1"></div>
+
+                                        {/* Styled Selects */}
+                                        <div className="relative group">
+                                            <select
+                                                value={filters.difficulty}
+                                                onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
+                                                className="appearance-none pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-gray-700 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all cursor-pointer min-w-[140px]"
+                                            >
+                                                <option value="All">All Levels</option>
+                                                <option value="Easy">🟢 Easy</option>
+                                                <option value="Medium">🟠 Medium</option>
+                                                <option value="Hard">🔴 Hard</option>
+                                            </select>
+                                            <svg className="absolute right-3.5 top-3.5 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
+
+                                        <div className="relative group">
+                                            <select
+                                                value={filters.source}
+                                                onChange={(e) => setFilters({ ...filters, source: e.target.value })}
+                                                className="appearance-none pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-gray-700 focus:outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition-all cursor-pointer min-w-[140px]"
+                                            >
+                                                <option value="All">All Sources</option>
+                                                <option value="LeetCode">LeetCode</option>
+                                                <option value="Codeforces">Codeforces</option>
+                                                <option value="Custom">Custom</option>
+                                            </select>
+                                            <svg className="absolute right-3.5 top-3.5 w-4 h-4 text-gray-400 pointer-events-none group-focus-within:rotate-180 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
