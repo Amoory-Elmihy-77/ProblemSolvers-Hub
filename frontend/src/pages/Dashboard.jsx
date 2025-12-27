@@ -16,6 +16,7 @@ const Dashboard = () => {
     const [filters, setFilters] = useState({
         difficulty: 'All',
         source: 'All',
+        search: '',
     });
 
     useEffect(() => {
@@ -66,6 +67,15 @@ const Dashboard = () => {
         }
     };
 
+    const filteredSets = problemSets.filter((set) => {
+        if (filters.search === '') return true;
+        const searchLower = filters.search.toLowerCase();
+        return (
+            set.title.toLowerCase().includes(searchLower) ||
+            set.description.toLowerCase().includes(searchLower)
+        );
+    });
+
     const filteredProblems = problems.filter((problem) => {
         if (showBookmarksOnly && !bookmarks.includes(problem._id)) {
             return false;
@@ -75,6 +85,13 @@ const Dashboard = () => {
         }
         if (filters.source !== 'All' && problem.source !== filters.source) {
             return false;
+        }
+        if (filters.search !== '') {
+            const searchLower = filters.search.toLowerCase();
+            return (
+                problem.title.toLowerCase().includes(searchLower) ||
+                problem.description.toLowerCase().includes(searchLower)
+            );
         }
         return true;
     });
@@ -145,9 +162,28 @@ const Dashboard = () => {
                 <div className="animate-fade-in-up">
                     {activeTab === 'challenges' && (
                         <div className="space-y-6">
-                            {problemSets.length > 0 ? (
+                            {/* Search Bar for Challenges */}
+                            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                                <h2 className="text-lg font-bold text-gray-800 px-2">
+                                    Challenges <span className="text-gray-400 font-normal text-sm ml-1">({filteredSets.length})</span>
+                                </h2>
+                                <div className="relative w-full md:max-w-xs">
+                                    <input
+                                        type="text"
+                                        placeholder="Search challenges..."
+                                        value={filters.search}
+                                        onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all"
+                                    />
+                                    <svg className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {filteredSets.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {problemSets.map(set => (
+                                    {filteredSets.map(set => (
                                         <ProblemSetCard key={set._id} problemSet={set} />
                                     ))}
                                 </div>
@@ -169,40 +205,56 @@ const Dashboard = () => {
                                     Problems <span className="text-gray-400 font-normal text-sm ml-1">({filteredProblems.length})</span>
                                 </h2>
 
-                                <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-                                    {/* Bookmark Toggle */}
-                                    <label className="relative inline-flex items-center cursor-pointer mr-2">
+                                <div className="flex flex-col lg:flex-row items-center gap-3 w-full md:w-auto">
+                                    {/* Search Input */}
+                                    <div className="relative w-full sm:max-w-xs">
                                         <input
-                                            type="checkbox"
-                                            className="sr-only peer"
-                                            checked={showBookmarksOnly}
-                                            onChange={() => setShowBookmarksOnly(!showBookmarksOnly)}
+                                            type="text"
+                                            placeholder="Search problems..."
+                                            value={filters.search}
+                                            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all"
                                         />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
-                                        <span className="ml-3 text-sm font-medium text-gray-700">Show Bookmarks</span>
-                                    </label>
+                                        <svg className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
 
-                                    <select
-                                        value={filters.difficulty}
-                                        onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
-                                        className="w-full sm:w-auto px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-shadow"
-                                    >
-                                        <option value="All">Difficulty: All</option>
-                                        <option value="Easy">Easy</option>
-                                        <option value="Medium">Medium</option>
-                                        <option value="Hard">Hard</option>
-                                    </select>
+                                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
+                                        {/* Bookmark Toggle */}
+                                        <label className="relative inline-flex items-center cursor-pointer mr-2">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={showBookmarksOnly}
+                                                onChange={() => setShowBookmarksOnly(!showBookmarksOnly)}
+                                            />
+                                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-violet-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
+                                            <span className="ml-3 text-sm font-medium text-gray-700">Show Bookmarks</span>
+                                        </label>
 
-                                    <select
-                                        value={filters.source}
-                                        onChange={(e) => setFilters({ ...filters, source: e.target.value })}
-                                        className="w-full sm:w-auto px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-shadow"
-                                    >
-                                        <option value="All">Source: All</option>
-                                        <option value="LeetCode">LeetCode</option>
-                                        <option value="Codeforces">Codeforces</option>
-                                        <option value="Custom">Custom</option>
-                                    </select>
+                                        <select
+                                            value={filters.difficulty}
+                                            onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
+                                            className="w-full sm:w-auto px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-shadow"
+                                        >
+                                            <option value="All">Difficulty: All</option>
+                                            <option value="Easy">Easy</option>
+                                            <option value="Medium">Medium</option>
+                                            <option value="Hard">Hard</option>
+                                        </select>
+
+                                        <select
+                                            value={filters.source}
+                                            onChange={(e) => setFilters({ ...filters, source: e.target.value })}
+                                            className="w-full sm:w-auto px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-shadow"
+                                        >
+                                            <option value="All">Source: All</option>
+                                            <option value="LeetCode">LeetCode</option>
+                                            <option value="Codeforces">Codeforces</option>
+                                            <option value="Custom">Custom</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 

@@ -18,6 +18,8 @@ const AddProblem = () => {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(isEditMode);
     const [teamName, setTeamName] = useState('');
+    const [problemSets, setProblemSets] = useState([]);
+    const [selectedSetId, setSelectedSetId] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -39,6 +41,10 @@ const AddProblem = () => {
                         url: problem.url || '',
                     });
                 }
+
+                // Fetch Problem Sets for the team
+                const { data: setsData } = await api.get('/problem-sets');
+                setProblemSets(setsData);
             } catch (err) {
                 console.error("Failed to load data", err);
                 toast.error("Failed to load data");
@@ -73,7 +79,15 @@ const AddProblem = () => {
                 await api.put(`/problems/${id}`, payload);
                 toast.success('Problem updated successfully!');
             } else {
-                await api.post('/problems', payload);
+                const { data: newProblem } = await api.post('/problems', payload);
+
+                // If a problem set was selected, add the problem to it
+                if (selectedSetId) {
+                    await api.patch(`/problem-sets/${selectedSetId}/add-problem`, {
+                        problemId: newProblem._id
+                    });
+                }
+
                 toast.success('Problem created successfully!');
             }
 
@@ -212,6 +226,32 @@ const AddProblem = () => {
                             placeholder="e.g. Array, DP, Sliding Window"
                         />
                         <p className="text-xs text-gray-400">Separate tags with commas</p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label htmlFor="problemSet" className="block text-sm font-medium text-gray-700">
+                            Add to Problem Set <span className="text-gray-400 font-normal">(Optional)</span>
+                        </label>
+                        <div className="relative">
+                            <select
+                                id="problemSet"
+                                name="problemSet"
+                                value={selectedSetId}
+                                onChange={(e) => setSelectedSetId(e.target.value)}
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:bg-white transition-all text-sm appearance-none cursor-pointer"
+                            >
+                                <option value="">-- None --</option>
+                                {problemSets.map(set => (
+                                    <option key={set._id} value={set._id}>{set.title}</option>
+                                ))}
+                            </select>
+                            <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-500">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+                        <p className="text-xs text-gray-400">Automatically add this problem to a set</p>
                     </div>
 
                     <div className="flex gap-4 pt-4 border-t border-gray-50 mt-8">

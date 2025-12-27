@@ -10,7 +10,16 @@ export const getProblems = asyncHandler(async (req, res) => {
     return res.status(200).json([]); // Return empty if no team
   }
 
-  const problems = await Problem.find({ team: req.user.currentTeam })
+  const keyword = req.query.keyword
+    ? {
+        $or: [
+          { title: { $regex: req.query.keyword, $options: 'i' } },
+          { description: { $regex: req.query.keyword, $options: 'i' } },
+        ],
+      }
+    : {};
+
+  const problems = await Problem.find({ team: req.user.currentTeam, ...keyword })
     .populate('createdBy', 'name email')
     .sort({ createdAt: -1 });
 

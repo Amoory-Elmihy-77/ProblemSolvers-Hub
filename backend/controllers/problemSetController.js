@@ -9,7 +9,16 @@ export const getProblemSets = asyncHandler(async (req, res) => {
       return res.status(200).json([]);
   }
 
-  const problemSets = await ProblemSet.find({ team: req.user.currentTeam })
+  const keyword = req.query.keyword
+    ? {
+        $or: [
+          { title: { $regex: req.query.keyword, $options: 'i' } },
+          { description: { $regex: req.query.keyword, $options: 'i' } },
+        ],
+      }
+    : {};
+
+  const problemSets = await ProblemSet.find({ team: req.user.currentTeam, ...keyword })
     .populate('createdBy', 'name email')
     .populate('problems', 'title difficulty')
     .sort({ deadline: -1 });
@@ -113,4 +122,29 @@ export const deleteProblemSet = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Problem set not found');
   }
+});
+// @desc    Add problem to set
+// @route   PATCH /api/problem-sets/:id/add-problem
+// @access  Private
+export const addProblemToSet = asyncHandler(async (req, res) => {
+  const { problemId } = req.body;
+
+  const problemSet = await ProblemSet.findById(req.params.id);
+
+  if (!problemSet) {
+    res.status(404);
+    throw new Error('Problem set not found');
+  }
+
+  if (problemSet.team.toString() !== req.user.currentTeam.toString()) {
+    res.status(403);
+    throw new Error('Not authorized to update this set');
+  }
+
+  if (!problemSet.problems.includes(problemId)) {
+    problemSet.problems.push(problemId);
+    await problemSet.save();
+  }
+
+  res.json({ message: 'Problem added to set', problemSet });
 });

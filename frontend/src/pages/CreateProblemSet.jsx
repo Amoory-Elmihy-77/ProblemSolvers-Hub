@@ -160,7 +160,7 @@ const CreateProblemSet = () => {
 
                     <div className="space-y-3">
                         <label className="block text-sm font-medium text-gray-700">
-                            Select Problems * <span className="text-violet-600 font-bold">({selectedProblems.length} selected)</span>
+                            Select Problems <span className="text-violet-600 font-bold">({selectedProblems.length} selected)</span>
                         </label>
                         <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-xl bg-gray-50 p-2 custom-scrollbar">
                             {availableProblems.length === 0 ? (
@@ -217,7 +217,7 @@ const CreateProblemSet = () => {
                         <button
                             type="submit"
                             className="flex-1 py-3 px-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
-                            disabled={loading || selectedProblems.length === 0}
+                            disabled={loading}
                         >
                             {loading ? 'Saving...' : (isEditMode ? 'Update Set' : 'Create Problem Set')}
                         </button>
